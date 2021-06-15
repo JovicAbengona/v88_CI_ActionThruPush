@@ -10,9 +10,21 @@ class GitCommand {
     }
 
     //Command: git status
-    // status(){
-        
-    // }
+    status(){
+        let num_of_changes = Object.keys(this.working_directory.new_changes).length;
+        let message = `You have ${num_of_changes} change/s.\n`;
+        if(num_of_changes > 0){
+            let counter = 0;
+            for(var file in this.working_directory.files){
+                counter++;
+                if(counter < num_of_changes)
+                    message += `${file}\n`;
+                else
+                    message += `${file}`;
+            }
+        }
+        return message;
+    }
 
     //Command: git add <filename/file directory/wildcard> 
     add(path_file){
@@ -21,6 +33,20 @@ class GitCommand {
         if(modified_files[path_file]){
             this.staging.push(modified_files[path_file]);
             delete modified_files[path_file];
+        }
+        else if(path_file == "."){
+            this.staging.push(modified_files);
+            this.working_directory.new_changes = {};
+        }
+        else if(path_file == "*"){
+            let file_list = Object.keys(modified_files);
+
+            for(let row=0; row < file_list.length; row++){
+                if(!file_list[row].startsWith(".")){
+                    this.staging.push(modified_files[file_list[row]]);
+                    delete this.working_directory.new_changes[file_list[row]]; 
+                }
+            }
         }
         else{
             return `Failed to add ${path_file}! File is not modified or missing.`;
